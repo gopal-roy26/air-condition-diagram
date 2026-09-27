@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Conditioning System / Functional Flow</title>
+    <style>
+        /* Base Setup */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background-color: #050505; 
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; overflow: hidden; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* 16:9 Premium Slide Area with Light Gradient */
+        .slide {
+            background: linear-gradient(135deg, #e4ebf7 0%, #c3d4ee 100%);
+            width: 100vw; height: 56.25vw; max-height: 100vh; max-width: 177.78vh; 
+            position: relative; box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            display: flex; flex-direction: column; overflow: hidden;
+            border-radius: 12px;
+        }
+
+        /* =========================================
+           INTRO SCREENS (Step 1 & Step 2)
+           ========================================= */
+        .intro-screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            background: inherit;
+            z-index: 100;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        #greeting-text {
+            font-size: 6vh; color: #1a252f; font-weight: 800;
+            text-align: center; margin-bottom: 4vh;
+            text-transform: uppercase; letter-spacing: 2px;
+            text-shadow: 2px 2px 5px rgba(255,255,255,0.8);
+        }
+        #greeting-text span { color: #005c97; font-size: 7vh; display: block; margin-top: 1vh;}
+
+        .mega-title {
+            font-size: 5.5vh; color: #1a252f; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 2px;
+            text-align: center; margin-bottom: 4vh;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.9);
+        }
+        .mega-title span { color: #005c97; display: block; font-size: 6.5vh; margin-top: 1vh;}
+
+        /* Premium Action Buttons (Reused for all screens) */
+        .premium-btn {
+            background: linear-gradient(135deg, #005c97, #363795);
+            color: white; border: none; padding: 2vh 4vw;
+            font-size: 2.5vh; font-weight: bold; border-radius: 40px;
+            cursor: pointer; box-shadow: 0 10px 25px rgba(0, 92, 151, 0.5);
+            transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1.5px;
+        }
+        .premium-btn:hover {
+            transform: translateY(-3px) scale(1.05); box-shadow: 0 15px 30px rgba(0, 92, 151, 0.7);
+        }
+        .premium-btn:active { transform: translateY(1px); }
+
+
+        /* =========================================
+           MAIN PRESENTATION LAYOUT (Step 3)
+           ========================================= */
+        #main-presentation {
+            display: none; /* Initially hidden */
+            opacity: 0;
+            flex-direction: column; width: 100%; height: 100%;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        /* Title Area (Small header for main view) */
+        .header {
+            text-align: center; padding: 3vh 0 1vh 0; z-index: 10;
+        }
+        h1 { 
+            color: #1a252f; font-size: 4.5vh; font-weight: 800; 
+            text-transform: uppercase; letter-spacing: 2px;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.9);
+        }
+        h1 span { color: #005c97; }
+
+        /* Main Content Layout */
+        .content-wrapper {
+            flex-grow: 1; display: flex; justify-content: space-between; 
+            padding: 0 2vw 2vh 2vw; width: 100%; height: 88%;
+        }
+
+        /* --- DIAGRAM SECTION --- */
+        .diagram-section {
+            width: 58%; height: 100%; position: relative;
+            overflow: hidden; border-radius: 10px;
+        }
+        
+        .image-wrapper {
+            position: absolute; top: -9%; left: 0;
+            height: 109%; width: max-content; 
+        }
+
+        .image-wrapper img {
+            height: 100%; width: auto; 
+            mix-blend-mode: multiply; 
+            filter: contrast(1.15) brightness(1.02); display: block;
+        }
+
+        /* BOUNCING ARROW POINTER */
+        #bouncing-arrow {
+            position: absolute; width: 45px; height: 45px;
+            opacity: 0; pointer-events: none; z-index: 20;
+            transition: top 0.7s cubic-bezier(0.4, 0, 0.2, 1), 
+                        left 0.7s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
+            animation: bounce 1s infinite; transform: translate(-50%, -100%);
+        }
+        #bouncing-arrow svg { width: 100%; height: 100%; filter: drop-shadow(0px 6px 6px rgba(0,0,0,0.3)); }
+        @keyframes bounce {
+            0%, 100% { transform: translate(-50%, -100%) translateY(0); }
+            50% { transform: translate(-50%, -100%) translateY(-15px); }
+        }
+
+        /* Right Side: Working Steps */
+        .steps-section {
+            width: 38%; height: 100%; display: flex; flex-direction: column;
+            justify-content: center; position: relative; padding-right: 1vw;
+        }
+
+        .step {
+            background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(5px);
+            border-left: 6px solid #b0bec5; padding: 1.8vh 2vw; margin-bottom: 1.5vh; border-radius: 10px;
+            font-size: 2.1vh; font-weight: 700; color: #2c3e50; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            opacity: 0; transform: translateX(30px); transition: all 0.5s ease;
+        }
+
+        .step strong { font-size: 2.6vh; margin-right: 1vw; }
+        
+        .step.active-1 { border-left-color: #0081a7; opacity: 1; transform: translateX(0); background: #ffffff; color: #0b132b; box-shadow: 0 10px 25px rgba(0, 210, 255, 0.3);}
+        .step.active-2 { border-left-color: #d90429; opacity: 1; transform: translateX(0); background: #ffffff; color: #0b132b; box-shadow: 0 10px 25px rgba(255, 75, 31, 0.3);}
+        .step.active-3 { border-left-color: #fb8500; opacity: 1; transform: translateX(0); background: #ffffff; color: #0b132b; box-shadow: 0 10px 25px rgba(230, 126, 34, 0.3);}
+        .step.active-4 { border-left-color: #8338ec; opacity: 1; transform: translateX(0); background: #ffffff; color: #0b132b; box-shadow: 0 10px 25px rgba(231, 76, 60, 0.3);}
+        .step.active-5 { border-left-color: #0081a7; opacity: 1; transform: translateX(0); background: #ffffff; color: #0b132b; box-shadow: 0 10px 25px rgba(0, 210, 255, 0.3);}
+        .step.active-6 { border-left-color: #3a86ff; opacity: 1; transform: translateX(0); background: #ffffff; color: #0b132b; box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);}
+
+        .btn-container { margin-top: 2vh; display: flex; justify-content: flex-end; }
+        #next-btn { padding: 1.8vh 3.5vw; font-size: 2.3vh; }
+    </style>
+</head>
+<body>
+
+    <div class="slide">
+        
+        <!-- ==========================================
+             STEP 1: TIME-AWARE GREETING SCREEN
+             ========================================== -->
+        <div id="screen-greeting" class="intro-screen">
+            <h2 id="greeting-text">Welcome Everybody,<br><span>Good Morning!</span></h2>
+            <button id="btn-to-topic" class="premium-btn">Start Presentation ➔</button>
+        </div>
+
+        <!-- ==========================================
+             STEP 2: TOPIC REVEAL SCREEN
+             ========================================== -->
+        <div id="screen-topic" class="intro-screen" style="display: none; opacity: 0;">
+            <h2 class="mega-title">Air Conditioning System <br><span>/ Functional Flow</span></h2>
+            <button id="btn-to-main" class="premium-btn">Show Diagram ➔</button>
+        </div>
+
+        <!-- ==========================================
+             STEP 3: MAIN DIAGRAM & FLOW
+             ========================================== -->
+        <div id="main-presentation">
+            <div class="header">
+                <h1>Air Conditioning System <span>/ Functional Flow</span></h1>
+            </div>
+            
+            <div class="content-wrapper">
+                <div class="diagram-section">
+                    <div class="image-wrapper">
+                        <!-- Make sure this image name matches yours exactly -->
+                        <img src="Gemini_Generated_Image_paf0edpaf0edpaf0.jfif" alt="Air Conditioning System">
+                        
+                        <div id="bouncing-arrow">
+                            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2L12 22M12 22L5 15M12 22L19 15" stroke-width="4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="steps-section">
+                    <div class="step" id="step-1"><strong style="color:#0081a7">1</strong> REFRIGERANT absorbs room heat in Evaporator.</div>
+                    <div class="step" id="step-2"><strong style="color:#d90429">2</strong> COMPRESSOR pumps & compresses the gas.</div>
+                    <div class="step" id="step-3"><strong style="color:#fb8500">3</strong> Hot gas flows to OUTDOOR Condenser.</div>
+                    <div class="step" id="step-4"><strong style="color:#8338ec">4</strong> Heat is released outside & gas condenses to liquid.</div>
+                    <div class="step" id="step-5"><strong style="color:#0081a7">5</strong> EXPANSION VALVE cools liquid refrigerant rapidly.</div>
+                    <div class="step" id="step-6"><strong style="color:#3a86ff">6</strong> Cycle repeats to continuously cool the air.</div>
+                    
+                    <div class="btn-container">
+                        <button id="next-btn" class="premium-btn">Start Flow ➔</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // SMART TIME GREETING LOGIC
+        // ==========================================
+        const hour = new Date().getHours();
+        let greetingMsg = "Good Evening";
+        if (hour >= 5 && hour < 12) {
+            greetingMsg = "Good Morning";
+        } else if (hour >= 12 && hour < 17) {
+            greetingMsg = "Good Afternoon";
+        }
+        document.getElementById('greeting-text').innerHTML = `Welcome Everybody,<br><span>${greetingMsg}!</span>`;
+
+
+        // ==========================================
+        // SCREEN TRANSITION LOGIC
+        // ==========================================
+        const screenGreeting = document.getElementById('screen-greeting');
+        const screenTopic = document.getElementById('screen-topic');
+        const mainPresentation = document.getElementById('main-presentation');
+
+        // Go to Topic Screen
+        document.getElementById('btn-to-topic').addEventListener('click', () => {
+            screenGreeting.style.opacity = '0'; // Fade out
+            setTimeout(() => {
+                screenGreeting.style.display = 'none'; // Remove from layout
+                screenTopic.style.display = 'flex'; // Bring next screen
+                setTimeout(() => screenTopic.style.opacity = '1', 50); // Fade in
+            }, 600); // Wait for fade out to complete
+        });
+
+        // Go to Main Diagram Screen
+        document.getElementById('btn-to-main').addEventListener('click', () => {
+            screenTopic.style.opacity = '0';
+            setTimeout(() => {
+                screenTopic.style.display = 'none';
+                mainPresentation.style.display = 'flex';
+                setTimeout(() => mainPresentation.style.opacity = '1', 50);
+            }, 600);
+        });
+
+
+        // ==========================================
+        // DIAGRAM HIGHLIGHT & FLOW LOGIC (Unchanged)
+        // ==========================================
+        let currentStep = 0;
+        const totalSteps = 6;
+        const arrow = document.getElementById('bouncing-arrow');
+        const nextBtn = document.getElementById('next-btn');
+        let miniDiagramInterval;
+
+        const mainHighlights = [
+            { top: '22%', left: '32%', color: '#0081a7' }, 
+            { top: '44%', left: '50%', color: '#d90429' }, 
+            { top: '57%', left: '46%', color: '#fb8500' }, 
+            { top: '63%', left: '36%', color: '#8338ec' }, 
+            { top: '40%', left: '14%', color: '#0081a7' }  
+        ];
+
+        const miniFlowSteps = [
+            { top: '80%', left: '49.5%', color: '#0081a7' }, 
+            { top: '88%', left: '60.5%', color: '#d90429' }, 
+            { top: '95%', left: '49.5%', color: '#8338ec' }, 
+            { top: '88%', left: '36%', color: '#0081a7' }    
+        ];
+
+        nextBtn.addEventListener('click', () => {
+            clearInterval(miniDiagramInterval);
+            
+            if (currentStep < totalSteps) {
+                currentStep++;
+                
+                const stepElement = document.getElementById(`step-${currentStep}`);
+                stepElement.classList.add(`active-${currentStep}`);
+
+                if (currentStep === 1) nextBtn.innerHTML = "Next Step ➔";
+                if (currentStep === totalSteps) nextBtn.innerHTML = "Restart Flow ↻";
+
+                if (currentStep < 6) {
+                    const pos = mainHighlights[currentStep - 1];
+                    applyHighlight(pos);
+                } else if (currentStep === 6) {
+                    let mIndex = 0;
+                    const runMiniFlow = () => {
+                        applyHighlight(miniFlowSteps[mIndex]);
+                        mIndex = (mIndex + 1) % miniFlowSteps.length;
+                    };
+                    
+                    runMiniFlow(); 
+                    miniDiagramInterval = setInterval(runMiniFlow, 1200); 
+                }
+            } else {
+                currentStep = 0;
+                arrow.style.opacity = '0'; 
+                nextBtn.innerHTML = "Start Flow ➔";
+                for (let i = 1; i <= totalSteps; i++) {
+                    document.getElementById(`step-${i}`).className = 'step';
+                }
+            }
+        });
+
+        function applyHighlight(pos) {
+            arrow.style.opacity = '1';
+            arrow.style.top = pos.top;
+            arrow.style.left = pos.left;
+            arrow.style.color = pos.color;
+        }
+    </script>
+</body>
+</html>
